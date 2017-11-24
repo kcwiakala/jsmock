@@ -12,7 +12,9 @@
   "author": "izisoft",
   "license": "ISC",
   "dependencies": {
-    "chai": "^4.1.2",
     "lodash": "^4.17.4"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2"
   }
 }
