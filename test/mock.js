@@ -2,45 +2,111 @@
 
 const expect = require('chai').expect;
 const Mock = require('../lib/mock');
+const Expectation = require('../lib/expectation');
 
-describe('mock', () => {
-  it('Should replace function of given object', () => {
-    let foo = {
-      bar: function(a, b) {
-        return a + b;
-      }
-    }
+describe('Mock', () => {
 
-    expect(foo.bar(1,3)).to.be.equal(4);
+  function A() {
+    this.foo = (a,b) => a + b;
+  }
+  A.prototype.bar = function(a,b) {
+    return a * b;
+  }
 
-    let fooMock = new Mock(foo);
+  describe('constructor', () => {
+    it('Should replace all function of given object', () => {   
+      let a = new A();
+      expect(a.foo(1,2)).to.be.equal(3);
+      expect(a.bar(1,2)).to.be.equal(2);
+  
+      let aMock = new Mock(a);  
+      expect(a.foo.bind(a,1,2)).to.be.throw(Error, 'Unexpected call');
+      expect(a.bar.bind(a,1,2)).to.be.throw(Error, 'Unexpected call');
+    });
+  });
+  
+  describe('expectCall', () => {
+    it('Should return instance of new expectation object', () => {
+      let a = new A();
+      let aMock = new Mock(a);
+      let exp = aMock.expectCall('foo').willOnce(() => 4);
+      expect(exp).to.be.instanceof(Expectation);
+    })
 
-    expect(foo.bar.bind(foo)).to.throw(Error, 'Unexpected');
+    it('Should throw exception on unknown function name provided', () => {
+      let a = new A();
+      let aMock = new Mock(a);
+      expect(aMock.expectCall.bind(aMock, 'goo')).to
+        .throw(Error, 'Unknown function');
+    });
 
-    // fooMock.expectCall('bar')
-    //   .matching((a,b) => a > b)
-    //   .will((a, b) => a * b)
-    //   .times(2);
+    it('Should put expectation only for given function', () => {
+      let a = new A();
+      let aMock = new Mock(a);
+      aMock.expectCall('foo').willOnce(() => 4);
+      expect(a.foo(1,2)).to.be.equal(4);
+      expect(a.bar.bind(a,1,2)).to.be.throw(Error, 'Unexpected call');
+    });
+  });
 
-    // expect(foo.bar(6,3)).to.be.equal(18);
-    // expect(foo.bar(4,2)).to.be.equal(8);
+  describe('verify', () => {
+    it('Should not throw if no expectations were put', () => {
+      let a = new A();
+      let aMock = new Mock(a);
+      expect(aMock.verify.bind(aMock)).not.to.throw;
+    });
 
-    // fooMock.expectCall('bar').will((a,b) => a - b).times(1);
-    // expect(foo.bar(4,2)).to.be.equal(2);
+    it('Should throw if there is at least one not saturated expectation', () => {
+      let a = new A();
+      let aMock = new Mock(a);
+      aMock.expectCall('foo').willOnce(() => 4);
+      aMock.expectCall('bar').willOnce(() => 4);
+      expect(aMock.verify.bind(aMock)).to.throw(Error, 'Unresolved');
 
-    // fooMock.expectCall('bar').will((a,b) => 2*a + b);
-    // expect(foo.bar(4,2)).to.be.equal(10);
+      a.foo(1,2);
+      expect(aMock.verify.bind(aMock)).to.throw(Error, 'Unresolved');
 
-    // fooMock.expectCall('bar', 1, 3).willOnce(() => 88);
-    // expect(foo.bar(1,3)).to.be.equal(88);
+      a.bar(3,4);
+      expect(aMock.verify.bind(aMock)).not.to.throw;
+    });
 
-    // fooMock.expectCall('bar')
-    //   .matching(1, 3)
-    //   .willOnce(() => 32);
-    // expect(foo.bar(1,3)).to.be.equal(32);
+    it('Should work with callback api', () => {
+      let a = new A();
+      let aMock = new Mock(a);
+      aMock.expectCall('foo').willOnce(() => 4);
+      aMock.expectCall('bar').willOnce(() => 4);
+      aMock.verify(err => {
+        expect(err).to.be.instanceof(Error);
+        expect(err.message).to.contain('Unresolved expectations');
+      });
+      a.foo(1,2);
+      aMock.verify(err => {
+        expect(err).to.be.instanceof(Error);
+        expect(err.message).to.contain('Unresolved expectations');
+      });
+      a.bar(3,4);
+      aMock.verify(err => {
+        expect(err).to.be.null;
+      });
+    });
+  });
 
-    fooMock.cleanup();
+  describe('cleanup', () => {
+    it('Should restore original object functions', () => {
+      let a = new A();
+      let aMock = new Mock(a);
+      aMock.expectCall('foo').willRepeatedly(() => 88);
+      aMock.expectCall('bar').willRepeatedly(() => 99);
 
-    //expect(foo.bar(1,3)).to.be.equal(4);
+      expect(a.foo(1,1)).to.be.equal(88);
+      expect(a.bar(8,5)).to.be.equal(99);
+      expect(a.foo(3,2)).to.be.equal(88);
+      aMock.verify();
+      aMock.cleanup();
+
+      expect(a.foo(1,1)).to.be.equal(2);
+      expect(a.bar(8,5)).to.be.equal(40);
+      expect(a.foo(3,2)).to.be.equal(5);
+    });
   });
 });

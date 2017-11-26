@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const Expectation = require('../lib/expectation');
 const Action = require('../lib/action');
 
-describe('expectation', () => {
+describe('Expectation', () => {
   
   describe('constructor', () => {
     it('Should use true matcher by default', () => {
