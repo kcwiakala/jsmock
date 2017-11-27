@@ -10,18 +10,6 @@ function create(T) {
 describe('Action', () => {
   
   describe('constructor', () =>{
-    it('Should validate that action is a function', () => {
-      // Passing a non function object should result in exception
-      expect(create.bind(null, Action, this, 1)).to.throw(TypeError, 'function');
-      expect(create.bind(null, Action, this, 'bla bla')).to.throw(TypeError, 'function');
-      expect(create.bind(null, Action, this, {})).to.throw(TypeError, 'function');
-      expect(create.bind(null, Action, this, [])).to.throw(TypeError, 'function');
-  
-      // No parameter or a valid function should be fine
-      expect(create.bind(null, Action, this)).not.to.throw;
-      expect(create.bind(null, Action, this, () => {})).not.to.throw;
-    });
-  
     it('Should validate that provided counter is non zero number', () => {
       const action = () => {};
   
@@ -91,6 +79,15 @@ describe('Action', () => {
       action.execute();
       expect(action.counter).to.be.equal(0);
       expect(action.execute.bind(action)).to.throw(Error, 'saturated');
+    });
+
+    it('Should return given value for non-function actions', () => {
+      let action1 = new Action(null, 5, 1);
+      expect(action1.execute()).to.be.equal(5);
+
+      let foo = {a: 1, b: false};
+      let action2 = new Action(null, foo, 1);
+      expect(action2.execute()).to.be.equal(foo);
     });
   });
 

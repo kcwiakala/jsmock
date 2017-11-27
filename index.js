@@ -1,1 +1,4 @@
-module.exports = require('./lib/mock');
+
+module.exports = {
+  Mock: require('./lib/mock')
+}
