@@ -1,4 +1,8 @@
 
+const matcher = require('./lib/matcher');
+const Mock = require('./lib/mock');
+
 module.exports = {
-  Mock: require('./lib/mock')
+  _: matcher.any,
+  Mock: Mock
 }

@@ -78,3 +78,5 @@ fooMock.expectCall('bar')
 You need to pay attention to order of specifying actions. If an action with 
 unlimited number of expected calls preceeds other actions, it will prevent their
 execution and cause mock to be invalid.
+
+# Examples
