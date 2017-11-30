@@ -72,7 +72,6 @@ defined, which will be executed in order of creation.
 ```javascript
 fooMock.expectCall('bar')
   .willOnce((a,b) => a * b) // First call will return multiplication of arguments
-  .will(6).times(3) // Next 3 calls will return value 6
   .willRepeteadly((a,b) => b) // All following calls will return second argument
 ```
 You need to pay attention to order of specifying actions. If an action with 
