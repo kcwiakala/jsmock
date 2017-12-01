@@ -49,6 +49,16 @@ describe('Mock', () => {
     });
   });
 
+  describe('mockedCall', () => {
+    it('Should throw exception on no matching expectation found', () => {
+      let a = new A();
+      let aMock = new Mock(a);
+      aMock.expectCall('foo').matching(1,2).willRepeatedly(() => 4);
+      expect(a.foo(1,2)).to.be.equal(4);
+      expect(a.foo.bind(a, 2, 1)).to.throw(Error, 'No matching expectation');
+    });
+  });
+
   describe('verify', () => {
     it('Should not throw if no expectations were put', () => {
       let a = new A();
