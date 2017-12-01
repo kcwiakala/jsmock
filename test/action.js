@@ -2,10 +2,7 @@
 
 const expect = require('chai').expect;
 const Action = require('../lib/action');
-
-function create(T) {
-  return new (Function.prototype.bind.apply(T, arguments));
-}
+const create = require('./helper').create;
 
 describe('Action', () => {
   
