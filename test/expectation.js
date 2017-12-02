@@ -47,20 +47,20 @@ describe('Expectation', () => {
     it('Should return true if there are no ready actions', () => {
       let exp = new Expectation();
       expect(exp.isSaturated()).to.be.true;
-      exp.actions.push({ready: () => false});
+      exp.actions.push({available: () => false});
       expect(exp.isSaturated()).to.be.true;
     });
 
     it('Should return false if there is at least one ready actions', () => {
       let exp = new Expectation();
-      exp.actions.push({ready: () => true});
-      exp.actions.push({ready: () => true});
+      exp.actions.push({available: () => true});
+      exp.actions.push({available: () => true});
       expect(exp.isSaturated()).to.be.false;
-      exp.actions[0].ready = () => false;
+      exp.actions[0].available = () => false;
       expect(exp.isSaturated()).to.be.false;
-      exp.actions[1].ready = () => false;
+      exp.actions[1].available = () => false;
       expect(exp.isSaturated()).to.be.true;
-      exp.actions[0].ready = () => true;
+      exp.actions[0].available = () => true;
       expect(exp.isSaturated()).to.be.false;
     });
   });
@@ -103,32 +103,32 @@ describe('Expectation', () => {
       expect(exp.execute()).to.be.undefined;
     });
 
-    it('Should execute first ready action from the list', () => {
+    it('Should execute first available action from the list', () => {
       let exp = new Expectation();
       exp.atLeast(1);
       exp.actions.push({
-        ready: () => false,
+        available: () => false,
         execute: (args) => 'A1'
       }, {
-        ready: () => true,
+        available: () => true,
         execute: (args) => 'A2'
       }, {
-        ready: () => true,
+        available: () => true,
         execute: (args) => 'A3'
       });
       expect(exp.execute()).to.be.equal('A2');
       expect(exp.execute()).to.be.equal('A2');
-      exp.actions[1].ready = () => false;
+      exp.actions[1].available = () => false;
       expect(exp.execute()).to.be.equal('A3');
     });
 
-    it('Should throw expection if no ready action in the list', () => {
+    it('Should throw expection if no available action in the list', () => {
       let exp = new Expectation();
       exp.actions.push({
-        ready: () => false,
+        available: () => false,
         execute: (args) => 'A1'
       }, {
-        ready: () => false,
+        available: () => false,
         execute: (args) => 'A2'
       });
       expect(exp.execute.bind(exp)).to.throw(Error, 'valid action');
@@ -138,20 +138,20 @@ describe('Expectation', () => {
       let exp = new Expectation();
       exp.atLeast(1);
       exp.actions.push({
-        ready: () => true,
+        available: () => true,
         execute: (args) => {
           expect(args).to.deep.equal([1,2,3]);
           return 'A1';
         }
       }, {
-        ready: () => true,
+        available: () => true,
         execute: (args) => {
           expect(args).to.deep.equal([3,2,1]);
           return 'A2';
         }
       });
       expect(exp.execute([1,2,3])).to.be.equal('A1');
-      exp.actions[0].ready = () => false;
+      exp.actions[0].available = () => false;
       expect(exp.execute([3,2,1])).to.be.equal('A2');
     });
   });
@@ -176,42 +176,6 @@ describe('Expectation', () => {
       let exp2 = new Expectation();
       expect(exp1.matching()).to.be.equal(exp1);
       expect(exp2.matching()).to.be.equal(exp2);
-    });
-  });
-
-  describe.skip('will', () => {
-    it('Should add new action to the list', () => {
-      let exp = new Expectation();
-      exp.will(() => false);
-      expect(exp.actions).to.have.length(1);
-      exp.will(() => 1);
-      exp.will(() => 2);
-      expect(exp.actions).to.have.length(3);
-    });
-
-    it('Should return newly created action', () => {
-      let exp = new Expectation();
-      let act = exp.will(() => true); 
-      expect(act).to.be.instanceOf(Action);
-      expect(act).to.be.equal(exp.actions[0]);
-      expect(act.counter).to.be.equal(1);
-    });
-
-    it('Should create action with provided function', () => {
-      let exp = new Expectation();
-      let a1 = exp.will(() => 4531);
-      let a2 = exp.will(() => 'Hello World');
-      expect(a1.execute()).to.be.equal(4531);
-      expect(a2.execute()).to.be.equal('Hello World'); 
-    });
-
-    it('Should bind action with owning expectation', () => {
-      let exp1 = new Expectation();
-      let exp2 = new Expectation();
-      let act1 = exp1.will(() => true);
-      let act2 = exp2.will(() => false);
-      expect(act1.owner).to.be.equal(exp1);
-      expect(act2.owner).to.be.equal(exp2);
     });
   });
 

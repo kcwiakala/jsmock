@@ -1,7 +1,8 @@
 'use strict';
 
 const expect = require('chai').expect;
-const Mock = require('../lib/mock');
+const Mock = require('../lib/mock').Mock;
+const UnexpectedCall = require('../lib/mock').UnexpectedCall;
 const Expectation = require('../lib/expectation');
 
 describe('Mock', () => {
@@ -20,8 +21,8 @@ describe('Mock', () => {
       expect(a.bar(1,2)).to.be.equal(2);
   
       let aMock = new Mock(a);  
-      expect(a.foo.bind(a,1,2)).to.be.throw(Error, 'Unexpected call');
-      expect(a.bar.bind(a,1,2)).to.be.throw(Error, 'Unexpected call');
+      expect(a.foo.bind(a,1,2)).to.be.throw(UnexpectedCall, 'Unexpected call');
+      expect(a.bar.bind(a,1,2)).to.be.throw(UnexpectedCall, 'Unexpected call');
     });
   });
   
@@ -45,7 +46,7 @@ describe('Mock', () => {
       let aMock = new Mock(a);
       aMock.expectCall('foo').willOnce(() => 4);
       expect(a.foo(1,2)).to.be.equal(4);
-      expect(a.bar.bind(a,1,2)).to.be.throw(Error, 'Unexpected call');
+      expect(a.bar.bind(a,1,2)).to.be.throw(UnexpectedCall, 'Unexpected call');
     });
   });
 
@@ -55,7 +56,7 @@ describe('Mock', () => {
       let aMock = new Mock(a);
       aMock.expectCall('foo').matching(1,2).willRepeatedly(() => 4);
       expect(a.foo(1,2)).to.be.equal(4);
-      expect(a.foo.bind(a, 2, 1)).to.throw(Error, 'No matching expectation');
+      expect(a.foo.bind(a, 2, 1)).to.throw(UnexpectedCall, 'No matching expectation');
     });
   });
 
