@@ -237,20 +237,23 @@ describe('Expectation', () => {
         expect(exp.actions).to.have.length(1);
         expect(exp.actions[0].counter).to.be.lessThan(0);
       });
-
-      it('Should return instance of current expectation', () => {
-        let exp1 = new Expectation();
-        let exp2 = new Expectation();
-        expect(exp1.willRepeatedly(() => true)).to.be.equal(exp1);
-        expect(exp2.willRepeatedly(() => false)).to.be.equal(exp2);
-      })
       
       it('Should create action with provided function', () => {
         let exp = new Expectation();
         exp.willRepeatedly(() => 4531);
-        exp.willRepeatedly(() => 'Hello World');
         expect(exp.actions[0].execute()).to.be.equal(4531);
-        expect(exp.actions[1].execute()).to.be.equal('Hello World'); 
+
+        exp = new Expectation();
+        exp.willRepeatedly(() => 'Hello World');
+        expect(exp.actions[0].execute()).to.be.equal('Hello World'); 
+      });
+
+      it('Should block possibility of adding any more actions to the expectation', () => {
+        let exp = new Expectation();
+        exp.willRepeatedly(4);
+        expect(exp.willOnce.bind(exp, 1)).to.throw(Error);
+        expect(exp.willTwice.bind(exp, 1)).to.throw(Error);
+        expect(exp.willRepeatedly.bind(exp, 1)).to.throw(Error);
       });
     });
   });
