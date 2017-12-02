@@ -17,6 +17,12 @@ describe('Expectation', () => {
       let exp = new Expectation();
       expect(exp.actions).to.be.an('array').that.is.empty;
     });
+
+    it('Should initialize cardinality to expect single execution', () => {
+      let exp = new Expectation();
+      expect(exp.execute.bind(exp)).not.to.throw(Error);
+      expect(exp.execute.bind(exp)).to.throw(Error, 'oversaturated');
+    });
   });
 
   describe('isMatching', () => {
@@ -44,24 +50,24 @@ describe('Expectation', () => {
   });
 
   describe('isSaturated', () => {
-    it('Should return true if there are no ready actions', () => {
+    it('Should return true if cardinality is not available', () => {
       let exp = new Expectation();
-      expect(exp.isSaturated()).to.be.true;
-      exp.actions.push({available: () => false});
+      exp.times(3);
+      expect(exp.isSaturated()).to.be.false;
+      exp.execute();
+      exp.execute();
+      expect(exp.isSaturated()).to.be.false;
+      exp.execute();
       expect(exp.isSaturated()).to.be.true;
     });
 
-    it('Should return false if there is at least one ready actions', () => {
+    it('Should always return false for unbound cardinalities', () => {
       let exp = new Expectation();
-      exp.actions.push({available: () => true});
-      exp.actions.push({available: () => true});
-      expect(exp.isSaturated()).to.be.false;
-      exp.actions[0].available = () => false;
-      expect(exp.isSaturated()).to.be.false;
-      exp.actions[1].available = () => false;
-      expect(exp.isSaturated()).to.be.true;
-      exp.actions[0].available = () => true;
-      expect(exp.isSaturated()).to.be.false;
+      exp.atLeast(2);
+      for(let i=0; i<1000; ++i) {
+        exp.execute();
+        expect(exp.isSaturated()).to.be.false;
+      }
     });
   });
 
@@ -105,54 +111,50 @@ describe('Expectation', () => {
 
     it('Should execute first available action from the list', () => {
       let exp = new Expectation();
-      exp.atLeast(1);
-      exp.actions.push({
-        available: () => false,
-        execute: (args) => 'A1'
-      }, {
-        available: () => true,
-        execute: (args) => 'A2'
-      }, {
-        available: () => true,
-        execute: (args) => 'A3'
-      });
+      exp.willOnce('A1').willTwice('A2').willOnce('A3');
+      expect(exp.execute()).to.be.equal('A1');
       expect(exp.execute()).to.be.equal('A2');
       expect(exp.execute()).to.be.equal('A2');
-      exp.actions[1].available = () => false;
       expect(exp.execute()).to.be.equal('A3');
     });
 
     it('Should throw expection if no available action in the list', () => {
       let exp = new Expectation();
-      exp.actions.push({
-        available: () => false,
-        execute: (args) => 'A1'
-      }, {
-        available: () => false,
-        execute: (args) => 'A2'
-      });
+      exp.times(3).willOnce('A1').willOnce('A2');
+      expect(exp.execute()).to.be.equal('A1');
+      expect(exp.execute()).to.be.equal('A2');
       expect(exp.execute.bind(exp)).to.throw(Error, 'valid action');
     });
 
     it('Should pass argument array to executed action', () => {
       let exp = new Expectation();
-      exp.atLeast(1);
-      exp.actions.push({
-        available: () => true,
-        execute: (args) => {
-          expect(args).to.deep.equal([1,2,3]);
-          return 'A1';
-        }
-      }, {
-        available: () => true,
-        execute: (args) => {
-          expect(args).to.deep.equal([3,2,1]);
-          return 'A2';
-        }
+      exp.willOnce((a,b,c) => {
+        expect([a,b,c]).to.deep.equal([1,2,3]);
+        return 'A1';
+      });
+      exp.willOnce((a,b,c) => {
+        expect([a,b,c]).to.deep.equal([3,2,1]);
+        return 'A2';
       });
       expect(exp.execute([1,2,3])).to.be.equal('A1');
       exp.actions[0].available = () => false;
       expect(exp.execute([3,2,1])).to.be.equal('A2');
+    });
+
+    it('Should throw expection if expectation is already saturated', () => {
+      let exp = new Expectation();
+      exp.atMost(2);
+      exp.execute();
+      exp.execute();
+      expect(exp.execute.bind(exp)).to.throw(Error);
+    });
+
+    it('Should respect forced cardinality even if there are still available actions', () => {
+      let exp = new Expectation();
+      exp.times(2).willOnce(153).willOnce(543).willOnce(123);
+      expect(exp.execute()).to.be.equal(153);
+      expect(exp.execute()).to.be.equal(543);
+      expect(exp.execute.bind(exp)).to.throw(Error);
     });
   });
 
@@ -179,75 +181,178 @@ describe('Expectation', () => {
     });
   });
 
-  describe('willOnce', () => {
-    it('Should create action with counter set to 1', () => {
-      let exp = new Expectation();
-      exp.willOnce(() => true);
-      expect(exp.actions).to.have.length(1);
-      expect(exp.actions[0].counter).to.be.equal(1);
+  describe('actions', () =>{
+    describe('willOnce', () => {
+      it('Should create action with counter set to 1', () => {
+        let exp = new Expectation();
+        exp.willOnce(() => true);
+        expect(exp.actions).to.have.length(1);
+        expect(exp.actions[0].counter).to.be.equal(1);
+      });
+
+      it('Should return instance of current expectation', () => {
+        let exp1 = new Expectation();
+        let exp2 = new Expectation();
+        expect(exp1.willOnce(() => true)).to.be.equal(exp1);
+        expect(exp2.willOnce(() => false)).to.be.equal(exp2);
+      })
+      
+      it('Should create action with provided function', () => {
+        let exp = new Expectation();
+        exp.willOnce(() => 4531);
+        exp.willOnce(() => 'Hello World');
+        expect(exp.actions[0].execute()).to.be.equal(4531);
+        expect(exp.actions[1].execute()).to.be.equal('Hello World'); 
+      });
     });
 
-    it('Should return instance of current expectation', () => {
-      let exp1 = new Expectation();
-      let exp2 = new Expectation();
-      expect(exp1.willOnce(() => true)).to.be.equal(exp1);
-      expect(exp2.willOnce(() => false)).to.be.equal(exp2);
-    })
-    
-    it('Should create action with provided function', () => {
-      let exp = new Expectation();
-      exp.willOnce(() => 4531);
-      exp.willOnce(() => 'Hello World');
-      expect(exp.actions[0].execute()).to.be.equal(4531);
-      expect(exp.actions[1].execute()).to.be.equal('Hello World'); 
+    describe('willTwice', () => {
+      it('Should create action with counter set to 2', () => {
+        let exp = new Expectation();
+        exp.willTwice(() => true);
+        expect(exp.actions).to.have.length(1);
+        expect(exp.actions[0].counter).to.be.equal(2);
+      });
+
+      it('Should return instance of current expectation', () => {
+        let exp1 = new Expectation();
+        let exp2 = new Expectation();
+        expect(exp1.willTwice(() => true)).to.be.equal(exp1);
+        expect(exp2.willTwice(() => false)).to.be.equal(exp2);
+      })
+      
+      it('Should create action with provided function', () => {
+        let exp = new Expectation();
+        exp.willTwice(() => 4531);
+        exp.willTwice(() => 'Hello World');
+        expect(exp.actions[0].execute()).to.be.equal(4531);
+        expect(exp.actions[1].execute()).to.be.equal('Hello World'); 
+      });
+    });
+
+    describe('willRepeatedly', () => {
+      it('Should create action with counter set to negative value', () => {
+        let exp = new Expectation();
+        exp.willRepeatedly(() => true);
+        expect(exp.actions).to.have.length(1);
+        expect(exp.actions[0].counter).to.be.lessThan(0);
+      });
+
+      it('Should return instance of current expectation', () => {
+        let exp1 = new Expectation();
+        let exp2 = new Expectation();
+        expect(exp1.willRepeatedly(() => true)).to.be.equal(exp1);
+        expect(exp2.willRepeatedly(() => false)).to.be.equal(exp2);
+      })
+      
+      it('Should create action with provided function', () => {
+        let exp = new Expectation();
+        exp.willRepeatedly(() => 4531);
+        exp.willRepeatedly(() => 'Hello World');
+        expect(exp.actions[0].execute()).to.be.equal(4531);
+        expect(exp.actions[1].execute()).to.be.equal('Hello World'); 
+      });
     });
   });
 
-  describe('willTwice', () => {
-    it('Should create action with counter set to 2', () => {
+  describe('cardinality', () => {
+    it('Should throw exception on attempt to override existing cardinality', () => {
       let exp = new Expectation();
-      exp.willTwice(() => true);
-      expect(exp.actions).to.have.length(1);
-      expect(exp.actions[0].counter).to.be.equal(2);
+      exp.times(2);
+      expect(exp.times.bind(exp,1)).to.throw(Error);
+      expect(exp.atLeast.bind(exp,3)).to.throw(Error);
+      expect(exp.atMost.bind(exp,5)).to.throw(Error);
+      expect(exp.between.bind(exp,1,4)).to.throw(Error);
     });
 
-    it('Should return instance of current expectation', () => {
-      let exp1 = new Expectation();
-      let exp2 = new Expectation();
-      expect(exp1.willTwice(() => true)).to.be.equal(exp1);
-      expect(exp2.willTwice(() => false)).to.be.equal(exp2);
-    })
+    it('Should throw expeption if called after at least one action definition', () => {
+      let exp = new Expectation();
+      exp.willOnce(() => 2);
+      expect(exp.times.bind(exp,1)).to.throw(Error);
+      expect(exp.atLeast.bind(exp,3)).to.throw(Error);
+      expect(exp.atMost.bind(exp,5)).to.throw(Error);
+      expect(exp.between.bind(exp,1,4)).to.throw(Error);
+    });
+
+    it('Should return expectation instance', () => {
+      let exp = new Expectation();
+      expect(exp.times(3)).to.be.equal(exp);
+      exp = new Expectation();
+      expect(exp.atLeast(2)).to.be.equal(exp);
+      exp = new Expectation();
+      expect(exp.atMost(7)).to.be.equal(exp);
+      exp = new Expectation();
+      expect(exp.between(1,7)).to.be.equal(exp);
+    });
+
+    describe('times', () => {
+      it('Should force cardinality on expectation to exact number of calls', () => {
+        let exp = new Expectation();
+        exp.times(2);
+        expect(exp.validate()).to.be.false;
+        exp.execute();
+        exp.execute();
+        expect(exp.validate()).to.be.true;
+        expect(exp.execute.bind(exp)).to.throw(Error);
+      });
+    });
     
-    it('Should create action with provided function', () => {
-      let exp = new Expectation();
-      exp.willTwice(() => 4531);
-      exp.willTwice(() => 'Hello World');
-      expect(exp.actions[0].execute()).to.be.equal(4531);
-      expect(exp.actions[1].execute()).to.be.equal('Hello World'); 
+    describe('atLeast', () => {
+      it('Should force cardinality on expectation to number of calls equal or higher then specified', () => {
+        let exp = new Expectation();
+        exp.atLeast(2);
+        expect(exp.validate()).to.be.false;
+        exp.execute();
+        expect(exp.validate()).to.be.false;
+        exp.execute();
+        expect(exp.validate()).to.be.true;
+        for(let i=0; i < 1000; ++i) {
+          exp.execute();
+          expect(exp.validate()).to.be.true;
+        }
+      });
     });
-  });
 
-  describe('willRepeatedly', () => {
-    it('Should create action with counter set to negative value', () => {
-      let exp = new Expectation();
-      exp.willRepeatedly(() => true);
-      expect(exp.actions).to.have.length(1);
-      expect(exp.actions[0].counter).to.be.lessThan(0);
+    describe('atMost', () => {
+      it('Should put expectation on at least one call', () => {
+        let exp = new Expectation();
+        exp.atMost(6);
+        expect(exp.validate()).to.be.false;
+        exp.execute();
+        expect(exp.validate()).to.be.true;
+      });
+
+      it('Should force cardinality on expectation to number of calls lower or equal then specified', () => {
+        let exp = new Expectation();
+        exp.atMost(2);
+        expect(exp.validate()).to.be.false;
+        exp.execute();
+        expect(exp.validate()).to.be.true;
+        exp.execute();
+        expect(exp.validate()).to.be.true;
+        expect(exp.execute.bind(exp)).to.throw(Error);
+      });
     });
 
-    it('Should return instance of current expectation', () => {
-      let exp1 = new Expectation();
-      let exp2 = new Expectation();
-      expect(exp1.willRepeatedly(() => true)).to.be.equal(exp1);
-      expect(exp2.willRepeatedly(() => false)).to.be.equal(exp2);
-    })
-    
-    it('Should create action with provided function', () => {
-      let exp = new Expectation();
-      exp.willRepeatedly(() => 4531);
-      exp.willRepeatedly(() => 'Hello World');
-      expect(exp.actions[0].execute()).to.be.equal(4531);
-      expect(exp.actions[1].execute()).to.be.equal('Hello World'); 
+    describe('betweeen', () => {
+      it('Should thwrow exception if only one parameter given', () => {
+        let exp = new Expectation();
+        expect(exp.between.bind(exp, 1)).to.throw(Error);
+      });
+
+      it('Should force cardinality on expectation to number of calls in given range', () => {
+        let exp = new Expectation();
+        exp.between(2,4);
+        expect(exp.validate()).to.be.false;
+        exp.execute();
+        expect(exp.validate()).to.be.false;
+        exp.execute();
+        expect(exp.validate()).to.be.true;
+        exp.execute();
+        expect(exp.validate()).to.be.true;
+        exp.execute();
+        expect(exp.execute.bind(exp)).to.throw(Error);
+      });
     });
   });
 });
