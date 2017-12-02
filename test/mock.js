@@ -67,6 +67,18 @@ describe('Mock', () => {
       expect(aMock.verify.bind(aMock)).not.to.throw;
     });
 
+    it('Should cleanup all previously setup expectations', () => {
+      let a = new A();
+      let aMock = new Mock(a);
+      aMock.expectCall('foo').willTwice(() => 4);
+      aMock.expectCall('bar').willTwice(() => 4);
+      a.foo();
+      a.bar();
+      expect(aMock.verify.bind(aMock)).to.throw(Error, 'Unresolved');
+      expect(a.foo.bind(a)).to.throw(UnexpectedCall);
+      expect(a.bar.bind(a)).to.throw(UnexpectedCall);
+    });
+
     it('Should throw if there is at least one not saturated expectation', () => {
       let a = new A();
       let aMock = new Mock(a);
@@ -74,9 +86,11 @@ describe('Mock', () => {
       aMock.expectCall('bar').willOnce(() => 4);
       expect(aMock.verify.bind(aMock)).to.throw(Error, 'Unresolved');
 
+      aMock.expectCall('foo').willTwice(() => 4);
       a.foo(1,2);
       expect(aMock.verify.bind(aMock)).to.throw(Error, 'Unresolved');
 
+      aMock.expectCall('bar').willOnce(() => 4);
       a.bar(3,4);
       expect(aMock.verify.bind(aMock)).not.to.throw;
     });
@@ -90,11 +104,13 @@ describe('Mock', () => {
         expect(err).to.be.instanceof(Error);
         expect(err.message).to.contain('Unresolved expectations');
       });
+      aMock.expectCall('foo').willTwice(() => 4);
       a.foo(1,2);
       aMock.verify(err => {
         expect(err).to.be.instanceof(Error);
         expect(err.message).to.contain('Unresolved expectations');
       });
+      aMock.expectCall('bar').willOnce(() => 4);
       a.bar(3,4);
       aMock.verify(err => {
         expect(err).to.be.null;
