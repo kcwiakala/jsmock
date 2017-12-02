@@ -11,47 +11,24 @@ describe('Action', () => {
       const action = () => {};
   
       // Not a number should throw an error
-      expect(create.bind(null, Action, this, action, 'bla')).to.throw(TypeError, 'number');
-      expect(create.bind(null, Action, this, action, true)).to.throw(TypeError, 'number');
-      expect(create.bind(null, Action, this, action, {})).to.throw(TypeError, 'number');
+      expect(create.bind(null, Action, action, 'bla')).to.throw(TypeError, 'number');
+      expect(create.bind(null, Action, action, true)).to.throw(TypeError, 'number');
+      expect(create.bind(null, Action, action, {})).to.throw(TypeError, 'number');
   
       // Zero value should cause an error
-      expect(create.bind(null, Action, this, action, 0)).to.throw(Error, 'execution times');
-      expect(create.bind(null, Action, this, action, 0.1)).to.throw(Error, 'execution times');
+      expect(create.bind(null, Action, action, 0)).to.throw(Error, 'execution times');
+      expect(create.bind(null, Action, action, 0.1)).to.throw(Error, 'execution times');
   
       // Valid non zero numbers should be fine
-      expect(create.bind(null, Action, this, action, 10)).not.to.throw;
-      expect(create.bind(null, Action, this, action, 0.9)).not.to.throw;
-    });
-  });
-
-  describe('times', () => {
-
-    it('Should validate that provided counter is non zero number', () => {
-      let action = new Action(null);
-
-      expect(action.times.bind(action, 'bla')).to.throw(TypeError, 'number');
-      expect(action.times.bind(action, true)).to.throw(TypeError, 'number');
-      expect(action.times.bind(action, {})).to.throw(TypeError, 'number');
-
-      expect(action.times.bind(action, 0)).to.throw(Error, 'execution times');
-      expect(action.times.bind(action, 0.4)).to.throw(Error, 'execution times');
-
-      expect(action.times.bind(action, 10)).not.to.throw;
-      expect(action.times.bind(action, -1)).not.to.throw;
-    });
-
-    it('Should return owner', () => {
-      let expectation = {};
-      let action = new Action(expectation);
-      expect(action.times(3)).to.be.equal(action.owner);
+      expect(create.bind(null, Action, action, 10)).not.to.throw;
+      expect(create.bind(null, Action, action, 0.9)).not.to.throw;
     });
   });
 
   describe('execute', () => {
     it('Should execute provided function with given parameters', () => {
       let executed = false;
-      let action = new Action(null, (a, b, c) => {
+      let action = new Action((a, b, c) => {
         executed = true;
         return a + b + c;
       });
@@ -60,7 +37,7 @@ describe('Action', () => {
     });
 
     it('Should decrement counter on each execute', () => {
-      let action = new Action(null, () => {}, 5);
+      let action = new Action(() => {}, 5);
       expect(action.counter).to.be.equal(5);
       action.execute();
       action.execute();
@@ -72,25 +49,25 @@ describe('Action', () => {
     });
 
     it('Should throw exception when executing saturated action', () => {
-      let action = new Action(null, () => {}, 1);
+      let action = new Action(() => {}, 1);
       action.execute();
       expect(action.counter).to.be.equal(0);
       expect(action.execute.bind(action)).to.throw(Error, 'saturated');
     });
 
     it('Should return given value for non-function actions', () => {
-      let action1 = new Action(null, 5, 1);
+      let action1 = new Action(5, 1);
       expect(action1.execute()).to.be.equal(5);
 
       let foo = {a: 1, b: false};
-      let action2 = new Action(null, foo, 1);
+      let action2 = new Action(foo, 1);
       expect(action2.execute()).to.be.equal(foo);
     });
   });
 
   describe('validate', () => {
     it('Should return true only if action was executed expected number of times', () => {
-      let action = new Action(null, () => {}, 3);
+      let action = new Action(() => {}, 3);
       expect(action.validate()).to.be.false;
       action.execute();
       action.execute();
@@ -100,7 +77,7 @@ describe('Action', () => {
     });
 
     it('Should always return true for unbounded actions', () => {
-      let action = new Action(null, () => {}, -1);
+      let action = new Action(() => {}, -1);
       expect(action.validate()).to.be.true;
       action.execute();
       expect(action.validate()).to.be.true;
