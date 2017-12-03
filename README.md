@@ -8,10 +8,13 @@ This project is still under construction ...
 
 # Installation
 *jsmock* is published on npm 
-
-    > npm install --save-dev jsmock
+```shell
+npm install --save-dev jsmock
+```
 
 # User Guide
+All examples provided below assume using *mocha/chai* test framework, although
+*jsmock* can be used with any framework of your choice.
 
 ## Creating Mocks
 ```javascript
@@ -26,7 +29,7 @@ let foo = {
 let fooMock = new Mock(foo);
 ```
 Now *fooMock* is a mock object wrapping *foo*. All functions of original object
-have been replaced and any call to *foo.bar* will cause an expection to be thrown.
+have been replaced and any call to *foo.bar* will cause an expectation to be thrown.
 
 ```javascript
 expect(foo.bar.bind(foo)).to.throw(Error);
@@ -58,7 +61,7 @@ foo.bar(1, 8); // OK
 foo.bar(1, 0); // KO 
 ```
 
-Mathcher can be specified directly in arguments of the *expectCall* method or by 
+Matcher can be specified directly in arguments of the *expectCall* method or by 
 calling *matching* function on mock object. Note that *expectCall* returns mock 
 object making call chain possible:
 ```javascript
@@ -74,7 +77,7 @@ list of specified actions. If cardinality is specified explicitly it takes prece
 over one calculated from action list.
 ```javascript
 fooMock.expectCall('bar').times(2); // Expect bar to be called twice
-fooMock.expectCall('bar').atLeast(1); // Expect bar to be callet at least one time
+fooMock.expectCall('bar').atLeast(1); // Expect bar to be called at least one time
 fooMock.expectCall('bar').atMost(4); // Expect bar to be called 1 - 4 times
 fooMock.expectCall('bar').between(3,5); // Expect bar to be called 3 - 5 times
 
@@ -93,7 +96,7 @@ specific cardinality. Actions are executed in the order of creation.
 fooMock.expectCall('bar')
   .willOnce((a,b) => a * b) // First call will return multiplication of arguments
   .willTwice((a,b) => a + b) // Second and third will return sum of arguments
-  .willRepeteadly((a,b) => b); // All following calls will return second argument
+  .willRepeatedly((a,b) => b); // All following calls will return second argument
 ```
 If action specifying method is feed with function it will use it as a callback for
 actual mocked function execution. If parameter of any other type is provided it will
@@ -102,10 +105,10 @@ be returned to the caller at execution time.
 fooMock.expectCall('bar')
   .willOnce(4) // Return 4 on first call
   .willTwice(7) // return 7 on next 2 calls
-  .willRepeteadly(0); // All following calls will return 0
+  .willRepeatedly(0); // All following calls will return 0
 ```
 
-The *willRepeteadly* method specifies action with unlimited number of potential calls,
+The *willRepeatedly* method specifies action with unlimited number of potential calls,
 thus any other attempt to add more actions to the expectation will cause error. Also
 note that *willRepeatedly* doesn't return expectation object so it isn't suitable for
 chaining.
@@ -116,15 +119,15 @@ Combination of cardinality and action specifiers can build virtually any expecta
 fooMock.expectCall('bar')
   .times(5) // Total number of calls expected to be 5
   .willOnce(3) // First call returns 3
-  .willRepeteadly(0); // Next 4 calls returns 0
+  .willRepeatedly(0); // Next 4 calls returns 0
 
 fooMock.expectCall('bar')
   .atLeast(8)
-  .willRepeteadly(1); // Will always return 1
+  .willRepeatedly(1); // Will always return 1
 ```
 
 ## Verifying Mocks
-Mock object will yeld errors directly in case of unexpected calls or violation of
+Mock object will yield errors directly in case of unexpected calls or violation of
 cardinality upper bound (more calls than expected). Verification of cardinality
 lower bound has to be done explicitly by the user, at the end of the test. 
 ```javascript
@@ -138,11 +141,11 @@ expect(foo.bar()).to.be.equal(6); // We make only one call to bar
 
 fooMock.verify(); // Will throw Error 
 ```
-Call to *verify* methods cleans up all previously setup expecations.
+Call to *verify* methods cleans up all previously setup expectations.
 
 ## Cleaning Mocks
-Creation of the mock over an existing object modifies its functions. To restore object
-to its original state you need to explicitly call *cleanup* method. 
+Creation of the mock over an existing object modifies its functions. To restore 
+object to its original state you need to explicitly call *cleanup* method. 
 ```javascript
 const fs = require('fs');
 const Mock = require('jsmock').Mock;
@@ -170,7 +173,8 @@ it('Should perform some fs action', (done) => {
     .matching(path => path === '/tmp')
     .willOnce((path, cb) => cb(null, ['a.js', 'b.js']));
 
-  foo.readTemp((files) => {
+  foo.readTemp((err, files) => {
+    expect(err).to.be.null;
     expect(files).to.deep.equal(['a.js', 'b.js']);
     fooMock.verify(done);
   });
