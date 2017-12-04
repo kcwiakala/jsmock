@@ -58,6 +58,13 @@ describe('Mock', () => {
       expect(a.foo(1,2)).to.be.equal(4);
       expect(a.foo.bind(a, 2, 1)).to.throw(UnexpectedCall, 'No matching expectation');
     });
+
+    it('Should throw exception with proper formatting of failed call', () => {
+      let a = new A();
+      let aMock = new Mock(a);
+      expect(() => a.foo('Hello', {x:1, y:2}, [1,2,3], false)).to.throw(UnexpectedCall, 'foo("Hello",{...},[...],false)');
+      expect(() => a.bar(1.23, null, undefined, a.bar)).to.throw(UnexpectedCall, 'bar(1.23,null,undefined,function)');
+    });
   });
 
   describe('verify', () => {
