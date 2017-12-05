@@ -254,6 +254,108 @@ describe('Expectation', () => {
         expect(exp.willOnce.bind(exp, 1)).to.throw(Error);
         expect(exp.willTwice.bind(exp, 1)).to.throw(Error);
         expect(exp.willRepeatedly.bind(exp, 1)).to.throw(Error);
+        expect(exp.willOnceInvoke.bind(exp, 1)).to.throw(Error);
+        expect(exp.willTwiceInvoke.bind(exp, 1)).to.throw(Error);
+        expect(exp.willRepeatedlyInvoke.bind(exp, 1)).to.throw(Error);
+      });
+    });
+
+    describe('willOnceInvoke', () => {
+      it('Should create invoker with counter set to 1', () => {
+        let exp = new Expectation();
+        exp.willOnceInvoke(null, 1);
+        expect(exp.actions).to.have.length(1);
+        expect(exp.actions[0].counter).to.be.equal(1);
+      });
+
+      it('Should return instance of current expectation', () => {
+        let exp1 = new Expectation();
+        let exp2 = new Expectation();
+        expect(exp1.willOnceInvoke(true)).to.be.equal(exp1);
+        expect(exp2.willOnceInvoke(false)).to.be.equal(exp2);
+      })
+      
+      it('Should create invoker with provided arguments', (done) => {
+        let exp = new Expectation();
+        exp.willOnceInvoke(1, 2);
+        exp.willOnceInvoke(true, 'Hello World');
+        exp.actions[0].execute([(a, b) => {
+          expect(a).to.be.equal(1);
+          expect(b).to.be.equal(2);
+        }]);
+        exp.actions[1].execute([(a, b) => {
+          expect(a).to.be.true;
+          expect(b).to.be.equal('Hello World');
+          done();
+        }]);
+      });
+    });
+
+    describe('willTwiceInvoke', () => {
+      it('Should create invoker with counter set to 2', () => {
+        let exp = new Expectation();
+        exp.willTwiceInvoke(null, 1);
+        expect(exp.actions).to.have.length(1);
+        expect(exp.actions[0].counter).to.be.equal(2);
+      });
+
+      it('Should return instance of current expectation', () => {
+        let exp1 = new Expectation();
+        let exp2 = new Expectation();
+        expect(exp1.willTwiceInvoke(true)).to.be.equal(exp1);
+        expect(exp2.willTwiceInvoke(false)).to.be.equal(exp2);
+      })
+      
+      it('Should create invoker with provided arguments', (done) => {
+        let exp = new Expectation();
+        exp.willTwiceInvoke(1, 2);
+        exp.willTwiceInvoke(true, 'Hello World');
+        exp.actions[0].execute([(a, b) => {
+          expect(a).to.be.equal(1);
+          expect(b).to.be.equal(2);
+        }]);
+        exp.actions[1].execute([(a, b) => {
+          expect(a).to.be.true;
+          expect(b).to.be.equal('Hello World');
+          done();
+        }]);
+      });
+    });
+
+    describe('willRepeatedlyInvoke', () => {
+      it('Should create invoker with counter set to negative value', () => {
+        let exp = new Expectation();
+        exp.willRepeatedlyInvoke(1,3);
+        expect(exp.actions).to.have.length(1);
+        expect(exp.actions[0].counter).to.be.lessThan(0);
+      });
+      
+      it('Should create invoker with provided arguments', (done) => {
+        let exp = new Expectation();
+        exp.willRepeatedlyInvoke(1, 2);
+        exp.actions[0].execute([(a, b) => {
+          expect(a).to.be.equal(1);
+          expect(b).to.be.equal(2);
+        }]);
+
+        exp = new Expectation();
+        exp.willRepeatedlyInvoke(true, 'Hello World');
+        exp.actions[0].execute([(a, b) => {
+          expect(a).to.be.true;
+          expect(b).to.be.equal('Hello World');
+          done();
+        }]);
+      });
+
+      it('Should block possibility of adding any more actions to the expectation', () => {
+        let exp = new Expectation();
+        exp.willRepeatedlyInvoke(4);
+        expect(exp.willOnce.bind(exp, 1)).to.throw(Error);
+        expect(exp.willTwice.bind(exp, 1)).to.throw(Error);
+        expect(exp.willRepeatedly.bind(exp, 1)).to.throw(Error);
+        expect(exp.willOnceInvoke.bind(exp, 1)).to.throw(Error);
+        expect(exp.willTwiceInvoke.bind(exp, 1)).to.throw(Error);
+        expect(exp.willRepeatedlyInvoke.bind(exp, 1)).to.throw(Error);
       });
     });
   });

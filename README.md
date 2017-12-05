@@ -29,7 +29,8 @@ let foo = {
 let fooMock = new Mock(foo);
 ```
 Now *fooMock* is a mock object wrapping *foo*. All functions of original object
-have been replaced and any call to *foo.bar* will cause an expectation to be thrown.
+have been replaced and any call to *foo.bar* will cause an UnexpectedCall error
+ to be thrown.
 
 ```javascript
 expect(foo.bar.bind(foo)).to.throw(Error);
@@ -43,7 +44,6 @@ fooMock.expectCall('bar');
 By default this will setup an expectation of single call to foo.bar function with
 any arguments. As there is no action specified yet, nothing will be returned and
 no side effects will be observed. 
-
 
 ## Specifying Matcher
 Matcher validates that call of mocked function is valid for given expectation. If
@@ -112,6 +112,21 @@ The *willRepeatedly* method specifies action with unlimited number of potential 
 thus any other attempt to add more actions to the expectation will cause error. Also
 note that *willRepeatedly* doesn't return expectation object so it isn't suitable for
 chaining.
+
+In js and nodejs it's very common to provide callback as the last argument in the 
+function call. Often the only purpose of the mock is to execute that callback with some
+predefined arguments. This kind of action can be created easily using *Invoke* versions
+of already presented functions:
+```javascript
+fsMock.expectCall('readdir')
+  .willOnceInvoke(null, ['a.js', 'b.js']);
+
+// Which is equivalent of
+fsMock.expectCall('readdir')
+  .willOnceInvoke((path, cb) => cb(null, ['a.js', 'b.js']));
+
+```
+
 
 ### Actions and Cardinality
 Combination of cardinality and action specifiers can build virtually any expectation.

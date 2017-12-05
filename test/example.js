@@ -71,7 +71,7 @@ describe('Examples', () => {
 
     it('Should return error if readdir fails', (done) => {
       fsMock.expectCall('readdir')
-        .willOnce((p, cb) => cb(new Error('TESTERROR')));
+        .willOnceInvoke(new Error('TESTERROR'));
 
         subdirectoriesFs('/some/wrong/path', (err, dirs) => {
         expect(err).to.be.instanceOf(Error);
@@ -82,14 +82,14 @@ describe('Examples', () => {
     it('Should find all items that are directories', (done) => {    
       fsMock.expectCall('readdir')
         .matching((p, cb) => p === '.')
-        .willOnce((p, cb) => cb(null, ['a', 'b', 'c', 'd', 'e', 'f']));
+        .willOnceInvoke(null, ['a', 'b', 'c', 'd', 'e', 'f']);
   
       fsMock.expectCall('stat')
         .times(6)
-        .willOnce((p, cb) => cb(null, {isDirectory: () => true}))
-        .willOnce((p, cb) => cb(null, {isDirectory: () => false}))
-        .willOnce((p, cb) => cb(null, {isDirectory: () => true}))
-        .willRepeatedly((p, cb) => cb(null, {isDirectory: () => false}))
+        .willOnceInvoke(null, {isDirectory: () => true})
+        .willOnceInvoke(null, {isDirectory: () => false})
+        .willOnceInvoke(null, {isDirectory: () => true})
+        .willRepeatedlyInvoke(null, {isDirectory: () => false})
   
         subdirectoriesFs('.', (err, dirs) => {
         expect(err).to.be.null;
@@ -100,14 +100,14 @@ describe('Examples', () => {
 
     it('Should skip item if stats fail', (done) => {
       fsMock.expectCall('readdir')
-        .willOnce((p, cb) => cb(null, ['a', 'b', 'c', 'd', 'e', 'f']));
+        .willOnceInvoke(null, ['a', 'b', 'c', 'd', 'e', 'f']);
 
       fsMock.expectCall('stat')
         .times(6)
-        .willOnce((p, cb) => cb(null, {isDirectory: () => true}))
-        .willOnce((p, cb) => cb(new Error('TESTERROR')))
-        .willOnce((p, cb) => cb(null, {isDirectory: () => false}))
-        .willRepeatedly((p, cb) => cb(null, {isDirectory: () => true}))
+        .willOnceInvoke(null, {isDirectory: () => true})
+        .willOnceInvoke(new Error('TESTERROR'))
+        .willOnceInvoke(null, {isDirectory: () => false})
+        .willRepeatedlyInvoke(null, {isDirectory: () => true})
 
         subdirectoriesFs('/some/wrong/path', (err, dirs) => {
         expect(err).to.be.null;
