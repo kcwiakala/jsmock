@@ -6,6 +6,17 @@
 Mocking framework for javascript, inspired by googlemock C++ framework.
 This project is still under construction ...
 
+  * [Installation](#installation)
+  * [User Guide](#user-guide)
+    * [Creating Mocks](#creating-mocks)
+    * [Defining Expectation](#defining-expectation)
+    * [Specifying Matcher](#specifying-matcher)
+    * [Specifying Cardinality](#specifying-cardinality)
+    * [Adding Actions](#adding-actions)
+    * [Verifying Mocks](#verifying-mocks)
+    * [Cleaning Mocks](#cleaning-mocks)
+  * [Examples](#license)
+
 # Installation
 *jsmock* is published on npm 
 ```shell
@@ -88,7 +99,7 @@ fooMock.expectCall('bar').between(1, MaxCallCount);
 ```
 Cardinality can be specified only once for given expectation.
 
-## Specifying Actions
+## Adding Actions
 Action is an object encapsulating function to be executed instead of the original
 code on mocked object. Each expectation can have multiple actions defined with 
 specific cardinality. Actions are executed in the order of creation.
@@ -113,9 +124,9 @@ thus any other attempt to add more actions to the expectation will cause error. 
 note that *willRepeatedly* doesn't return expectation object so it isn't suitable for
 chaining.
 
-In js and nodejs it's very common to provide callback as the last argument in the 
+In *js* and *nodejs* it's very common to provide callback as the last argument in the 
 function call. Often the only purpose of the mock is to execute that callback with some
-predefined arguments. This kind of action can be created easily using *Invoke* versions
+predefined arguments. This kind of action can be created easily using *will...Invoke* versions
 of already presented functions:
 ```javascript
 fsMock.expectCall('readdir')
@@ -126,7 +137,6 @@ fsMock.expectCall('readdir')
   .willOnceInvoke((path, cb) => cb(null, ['a.js', 'b.js']));
 
 ```
-
 
 ### Actions and Cardinality
 Combination of cardinality and action specifiers can build virtually any expectation.
@@ -180,7 +190,8 @@ fsMock.cleanup();
 ```
 
 # Examples
-
+Some examples of potential "real life" usage can be found in 
+[example.js](jsmock/blob/master/test/example.js) test file.
 ```javascript
 it('Should perform some fs action', (done) => {
   let fsMock = new Mock(fs);
