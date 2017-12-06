@@ -7,6 +7,9 @@ npm-debug.log*
 # Coverage report
 coverage
 
+# Jsdoc output
+out
+
 # Dependency directory
 node_modules
 
