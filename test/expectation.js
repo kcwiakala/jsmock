@@ -4,6 +4,10 @@ const expect = require('chai').expect;
 const Expectation = require('../lib/expectation');
 const Action = require('../lib/action');
 
+const matcher = require('../lib/matcher');
+const Matcher = matcher.Matcher;
+const WeakMatcher = matcher.WeakMatcher;
+
 describe('Expectation', () => {
   
   describe('constructor', () => {
@@ -159,18 +163,12 @@ describe('Expectation', () => {
   });
 
   describe('matching', () => {
-    it('Should replace current matcher with one provided', () => {
+    it('Should create Matcher with given arguments', () => {
       let exp = new Expectation();
-      expect(exp.isMatching()).to.be.true;
-      exp.matching(() => false);
-      expect(exp.isMatching()).to.be.false;
-      exp.matching((a) => a > 3);
-      expect(exp.isMatching([1])).to.be.false;
-      expect(exp.isMatching([4])).to.be.true;
       exp.matching(1,2,3);
-      expect(exp.isMatching([1,2])).to.be.false;
-      expect(exp.isMatching([1,2,3,4])).to.be.false;
-      expect(exp.isMatching([1,2,3])).to.be.true;
+      expect(exp.matcher).to.be.instanceof(Matcher);
+      expect(exp.matcher.check([1,2,3])).to.be.true;
+      expect(exp.matcher.check([1,2])).to.be.false;
     });
 
     it('Should return current expectation instance', () => {
@@ -178,6 +176,68 @@ describe('Expectation', () => {
       let exp2 = new Expectation();
       expect(exp1.matching()).to.be.equal(exp1);
       expect(exp2.matching()).to.be.equal(exp2);
+    });
+
+    it('Should throw exception when called on expectation with already defined matcher', () => {
+      let exp1 = new Expectation([1,2,3]);
+      expect(exp1.matching.bind(exp1, 4,3,5)).to.throw(Error);
+      expect(exp1.with.bind(exp1, 4,3,5)).to.throw(Error);
+
+      let exp2 = new Expectation();
+      exp2.matching(1,2);
+      expect(exp2.matching.bind(exp2, 3,5)).to.throw(Error);
+    });
+
+    it('Should throw exception if set after cardinality', () => {
+      let exp = new Expectation();
+      exp.times(2);
+      expect(exp.matching.bind(exp, 1)).to.throw(Error);
+    });
+
+    it('Should throw exception if set after first action', () => {
+      let exp = new Expectation();
+      exp.willOnce(2);
+      expect(exp.matching.bind(exp, 1)).to.throw(Error);
+    });
+  });
+
+  describe('matchingAtLeast', () => {
+    it('Should create WeakMatcher with given arguments', () => {
+      let exp = new Expectation();
+      exp.matchingAtLeast(1,2);
+      expect(exp.matcher).to.be.instanceof(WeakMatcher);
+      expect(exp.matcher.check([1,2,3])).to.be.true;
+      expect(exp.matcher.check([1,2])).to.be.true;
+      expect(exp.matcher.check([1])).to.be.false;
+    });
+
+    it('Should return current expectation instance', () => {
+      let exp1 = new Expectation();
+      let exp2 = new Expectation();
+      expect(exp1.matchingAtLeast()).to.be.equal(exp1);
+      expect(exp2.matchingAtLeast()).to.be.equal(exp2);
+    });
+
+    it('Should throw exception when called on expectation with already defined matcher', () => {
+      let exp1 = new Expectation([1,2,3]);
+      expect(exp1.matchingAtLeast.bind(exp1, 4,3,5)).to.throw(Error);
+      expect(exp1.withAtLeast.bind(exp1, 4,3,5)).to.throw(Error);
+
+      let exp2 = new Expectation();
+      exp2.matchingAtLeast(1,2);
+      expect(exp2.matchingAtLeast.bind(exp2, 3,5)).to.throw(Error);
+    });
+
+    it('Should throw exception if set after cardinality', () => {
+      let exp = new Expectation();
+      exp.times(2);
+      expect(exp.matchingAtLeast.bind(exp, 1)).to.throw(Error);
+    });
+
+    it('Should throw exception if set after first action', () => {
+      let exp = new Expectation();
+      exp.willOnce(2);
+      expect(exp.matchingAtLeast.bind(exp, 1)).to.throw(Error);
     });
   });
 
