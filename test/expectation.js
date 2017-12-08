@@ -430,7 +430,7 @@ describe('Expectation', () => {
       expect(exp.between.bind(exp,1,4)).to.throw(Error);
     });
 
-    it('Should throw expeption if called after at least one action definition', () => {
+    it('Should throw exception if called after at least one action definition', () => {
       let exp = new Expectation();
       exp.willOnce(() => 2);
       expect(exp.times.bind(exp,1)).to.throw(Error);
