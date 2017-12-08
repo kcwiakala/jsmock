@@ -191,7 +191,7 @@ fsMock.cleanup();
 
 # Examples
 Some examples of potential "real life" usage can be found in 
-[example.js](jsmock/blob/master/test/example.js) test file.
+[example.js](/test/example.js) test file.
 ```javascript
 it('Should perform some fs action', (done) => {
   let fsMock = new Mock(fs);
