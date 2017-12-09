@@ -134,6 +134,7 @@ foo.bar(1,3); // KO
 #### Argument Type Matchers
 *jsmock* comes with a family of predefined argument type matchers, that can be helpful
 if we care more about the type of argument provided to the call than its actual value.
+
 | Matcher | Description |
 |---------|-------------|
 | `Matcher.ANY`      | Checks only presence of an argument in a call, doesn't care about actual type |
