@@ -190,14 +190,14 @@ Each expectation contains a [matcher](#Matcher),
     * [.isMatching(args)](#Expectation+isMatching) ⇒ <code>Boolean</code>
     * [.isSaturated()](#Expectation+isSaturated) ⇒ <code>Boolean</code>
     * [.validate()](#Expectation+validate) ⇒ <code>Boolean</code>
-    * [.times(count)](#Expectation+times)
-    * [.atLeast(count)](#Expectation+atLeast)
-    * [.atMost(count)](#Expectation+atMost)
-    * [.between(min, max)](#Expectation+between)
+    * [.times(count)](#Expectation+times) ⇒ [<code>Expectation</code>](#Expectation)
+    * [.atLeast(count)](#Expectation+atLeast) ⇒ [<code>Expectation</code>](#Expectation)
+    * [.atMost(count)](#Expectation+atMost) ⇒ [<code>Expectation</code>](#Expectation)
+    * [.between(min, max)](#Expectation+between) ⇒ [<code>Expectation</code>](#Expectation)
     * [.matching()](#Expectation+matching) ⇒ [<code>Expectation</code>](#Expectation)
-    * [.with()](#Expectation+with)
+    * [.with()](#Expectation+with) ⇒ [<code>Expectation</code>](#Expectation)
     * [.matchingAtLeast()](#Expectation+matchingAtLeast) ⇒ [<code>Expectation</code>](#Expectation)
-    * [.withAtLeast()](#Expectation+withAtLeast)
+    * [.withAtLeast()](#Expectation+withAtLeast) ⇒ [<code>Expectation</code>](#Expectation)
     * [.willOnce(action)](#Expectation+willOnce) ⇒ [<code>Expectation</code>](#Expectation)
     * [.willTwice(action)](#Expectation+willTwice) ⇒ [<code>Expectation</code>](#Expectation)
     * [.willRepeatedly(action)](#Expectation+willRepeatedly)
@@ -242,10 +242,11 @@ Validates the expectation.
 **Returns**: <code>Boolean</code> - Returns true if expectation cardinality is fulfilled, false otherwise.  
 <a name="Expectation+times"></a>
 
-### expectation.times(count)
+### expectation.times(count) ⇒ [<code>Expectation</code>](#Expectation)
 Specifies expectation cardinality to given number of expected calls.
 
 **Kind**: instance method of [<code>Expectation</code>](#Expectation)  
+**Returns**: [<code>Expectation</code>](#Expectation) - Returns current instance of the expectation for chaining.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -253,11 +254,12 @@ Specifies expectation cardinality to given number of expected calls.
 
 <a name="Expectation+atLeast"></a>
 
-### expectation.atLeast(count)
+### expectation.atLeast(count) ⇒ [<code>Expectation</code>](#Expectation)
 Specifies number of expectation matching calls to be equal or greater
 of given number.
 
 **Kind**: instance method of [<code>Expectation</code>](#Expectation)  
+**Returns**: [<code>Expectation</code>](#Expectation) - Returns current instance of the expectation for chaining.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -265,11 +267,12 @@ of given number.
 
 <a name="Expectation+atMost"></a>
 
-### expectation.atMost(count)
+### expectation.atMost(count) ⇒ [<code>Expectation</code>](#Expectation)
 Specifies number of expectation matching calls to be at least 1, 
 but not greater than given number.
 
 **Kind**: instance method of [<code>Expectation</code>](#Expectation)  
+**Returns**: [<code>Expectation</code>](#Expectation) - Returns current instance of the expectation for chaining.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -277,10 +280,11 @@ but not greater than given number.
 
 <a name="Expectation+between"></a>
 
-### expectation.between(min, max)
+### expectation.between(min, max) ⇒ [<code>Expectation</code>](#Expectation)
 Specifies number of expectation matching calls to lie in given range.
 
 **Kind**: instance method of [<code>Expectation</code>](#Expectation)  
+**Returns**: [<code>Expectation</code>](#Expectation) - Returns current instance of the expectation for chaining.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -296,10 +300,11 @@ Creates expectation matcher from provided arguments.
 **Returns**: [<code>Expectation</code>](#Expectation) - Returns current instance of the expectation for chaining.  
 <a name="Expectation+with"></a>
 
-### expectation.with()
+### expectation.with() ⇒ [<code>Expectation</code>](#Expectation)
 Alias of matching method
 
 **Kind**: instance method of [<code>Expectation</code>](#Expectation)  
+**Returns**: [<code>Expectation</code>](#Expectation) - Returns current instance of the expectation for chaining.  
 <a name="Expectation+matchingAtLeast"></a>
 
 ### expectation.matchingAtLeast() ⇒ [<code>Expectation</code>](#Expectation)
@@ -311,10 +316,11 @@ call can contain more arguments.
 **Returns**: [<code>Expectation</code>](#Expectation) - Returns current instance of the expectation for chaining.  
 <a name="Expectation+withAtLeast"></a>
 
-### expectation.withAtLeast()
+### expectation.withAtLeast() ⇒ [<code>Expectation</code>](#Expectation)
 Alias of matchingAtLeast
 
 **Kind**: instance method of [<code>Expectation</code>](#Expectation)  
+**Returns**: [<code>Expectation</code>](#Expectation) - Returns current instance of the expectation for chaining.  
 <a name="Expectation+willOnce"></a>
 
 ### expectation.willOnce(action) ⇒ [<code>Expectation</code>](#Expectation)
@@ -385,6 +391,8 @@ has unbounded execution time.
 <a name="Expectation+execute"></a>
 
 ### expectation.execute(args) ⇒ <code>\*</code>
+Executes first pending action with given arguments.
+
 **Kind**: instance method of [<code>Expectation</code>](#Expectation)  
 **Returns**: <code>\*</code> - If no action was specified for the expectation, will return no value.
 If there is an action to be executed returns result of that execution.  
@@ -566,7 +574,7 @@ object functions with unresolved expectations.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| done | <code>function</code> | Optional callback parameter. If provided, function want throw expectation but will pass error to callback. If verification succeeds callback is called with null. |
+| done | <code>function</code> | Optional callback parameter. If provided, function won't throw an exception  but will pass error to callback. If verification succeeds callback is called  with null. |
 
 <a name="Mock+cleanup"></a>
 
