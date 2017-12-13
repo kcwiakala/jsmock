@@ -19,14 +19,14 @@ This project is still under construction ...
   * [Examples](#examples)
 
 # Installation
-*jsmock* is published on npm 
+`jsmock` is published on npm 
 ```shell
 npm install --save-dev jsmock
 ```
 
 # User Guide
-All examples provided below assume using *mocha/chai* test framework, although
-*jsmock* can be used with any framework of your choice.
+All examples provided below assume using `mocha`/`chai` test framework, although
+`jsmock` can be used with any framework of your choice.
 
 Mock provides an API to define and verify expectations on all function calls 
 performed on reference to original object. A standard unit test involving mocks
@@ -49,8 +49,8 @@ let foo = {
 
 let fooMock = new Mock(foo);
 ```
-Now *fooMock* is a mock object wrapping *foo*. All functions of original object
-have been replaced and any call to *foo.bar* will cause an UnexpectedCall error
+Now `fooMock` is a mock object wrapping `foo`. All functions of original object
+have been replaced and any call to `foo.bar` will cause an UnexpectedCall error
  to be thrown.
 
 ```javascript
@@ -155,7 +155,7 @@ foo.bar([1,2,3], true); // KO
 ```
 
 ### Specifying Cardinality
-Cardinality specifies number of expected calls to given function. *jsmock* provides
+Cardinality specifies number of expected calls to given function. `jsmock` provides
 two ways of specifying expectation cardinality. It can be provided explicitly
 through one of expectation methods, or it can be calculated automatically from
 list of specified actions. If cardinality is specified explicitly it takes precedence
@@ -183,7 +183,7 @@ Cardinality can be specified only once for given expectation.
 
 ### Adding Actions
 Action is an object encapsulating function to be executed instead of the original
-code on mocked object. Each expectation can have multiple actions defined with 
+mocked object code. Each expectation can have multiple actions defined with 
 specific cardinality. Actions are executed in the order of creation.
 
 ```javascript
@@ -209,8 +209,9 @@ chaining.
 
 In `nodejs` (and `js` in general) it's very common to provide callback as the last argument 
 in the function call. Often the only purpose of the mock is to execute that callback with some
-predefined arguments. This kind of action can be created easily using *will...Invoke* versions
+predefined arguments. This kind of action can be created easily using `will...Invoke` versions
 of action create methods
+
 ```javascript
 fsMock.expectCall('readdir')
   .willOnceInvoke(null, ['a.js', 'b.js']);
@@ -270,17 +271,3 @@ fsMock.cleanup();
 # Examples
 Some examples of potential "real life" usage can be found in 
 [example.js](/test/example.js) test file.
-```javascript
-it('Should perform some fs action', (done) => {
-  let fsMock = new Mock(fs);
-  fsMock.expectCall('readdir')
-    .matching(path => path === '/tmp')
-    .willOnce((path, cb) => cb(null, ['a.js', 'b.js']));
-
-  foo.readTemp((err, files) => {
-    expect(err).to.be.null;
-    expect(files).to.deep.equal(['a.js', 'b.js']);
-    fooMock.verify(done);
-  });
-});
-```
